@@ -180,33 +180,33 @@ return {
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        --      clangd = {
-        --        keys = {
-        --          { '<leader>ch', '<cmd>ClangdSwitchSourceHeader<cr>', desc = 'Switch Source/Header (C/C++)' },
-        --        },
-        --        root_dir = function(fname)
-        --          return require('lspconfig.util').root_pattern '.clangd'(fname)
-        --            or require('lspconfig.util').root_pattern('compile_commands.json', 'compile_flags.txt')(fname)
-        --            or require('lspconfig.util').find_git_ancestor(fname)
-        --        end,
-        --        capabilities = {
-        --          offsetEncoding = { 'utf-16' },
-        --        },
-        --        cmd = {
-        --          'clangd',
-        --          '--background-index',
-        --          '--clang-tidy',
-        --          '--header-insertion=iwyu',
-        --          '--completion-style=detailed',
-        --          '--function-arg-placeholders',
-        --          '--fallback-style=llvm',
-        --        },
-        --        init_options = {
-        --          usePlaceholders = true,
-        --          completeUnimported = true,
-        --          clangdFileStatus = true,
-        --        },
-        --      },
+        clangd = {
+          keys = {
+            { '<leader>ch', '<cmd>ClangdSwitchSourceHeader<cr>', desc = 'Switch Source/Header (C/C++)' },
+          },
+          root_dir = function(fname)
+            return require('lspconfig.util').root_pattern '.clangd'(fname)
+              or require('lspconfig.util').root_pattern('compile_commands.json', 'compile_flags.txt')(fname)
+              or require('lspconfig.util').find_git_ancestor(fname)
+          end,
+          capabilities = {
+            offsetEncoding = { 'utf-16' },
+          },
+          cmd = {
+            'clangd',
+            '--background-index',
+            '--clang-tidy',
+            '--header-insertion=iwyu',
+            '--completion-style=detailed',
+            '--function-arg-placeholders',
+            '--fallback-style=llvm',
+          },
+          init_options = {
+            usePlaceholders = true,
+            completeUnimported = true,
+            clangdFileStatus = true,
+          },
+        },
         -- gopls = {},
         -- pyright = {},
         -- rust_analyzer = {},
@@ -251,6 +251,7 @@ return {
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'clang-format', -- Used to format Lua code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -262,6 +263,17 @@ return {
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+            local existing_on_attach = server.on_attach
+            server.on_attach = function(client, bufnr)
+              if existing_on_attach then
+                existing_on_attach(client, bufnr)
+              end
+
+              if server_name == 'clangd' then
+                client.server_capabilities.documentFormattingProvider = false
+                client.server_capabilities.documentRangeFormattingProvider = false
+              end
+            end
             require('lspconfig')[server_name].setup(server)
           end,
         },
