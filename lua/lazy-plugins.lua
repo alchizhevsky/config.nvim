@@ -6,7 +6,7 @@ require('lazy').setup({
   { import = 'plugins/git' },
   { import = 'plugins/qol' },
   { import = 'plugins/ai' },
-  --	{ import = "plugins/fun" },
+  { import = 'plugins/fun' },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
