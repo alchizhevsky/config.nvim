@@ -201,7 +201,7 @@ return {
             '--function-arg-placeholders',
             '--fallback-style=llvm',
             -- work-specific
-            '--query-driver=/opt/x-tools/*/bin/*',
+            '--query-driver=/usr/bin/ccache,/opt/x-tools/*/bin/*',
           },
           init_options = {
             usePlaceholders = true,
