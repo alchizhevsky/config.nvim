@@ -200,6 +200,8 @@ return {
             '--completion-style=detailed',
             '--function-arg-placeholders',
             '--fallback-style=llvm',
+            -- work-specific
+            '--query-driver=/opt/x-tools/*/bin/*',
           },
           init_options = {
             usePlaceholders = true,
