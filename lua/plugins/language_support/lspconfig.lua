@@ -13,8 +13,8 @@ return {
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
+    -- event = { 'BufReadPre', 'BufNewFile' },
     dependencies = {
-      event = { 'BufReadPre', 'BufNewFile' },
       { 'williamboman/mason.nvim', opts = {} },
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
@@ -31,6 +31,23 @@ return {
           local bufnr = event.buf
           local client = vim.lsp.get_client_by_id(event.data.client_id)
 
+          -- VIRTUAL BUFFER GUARD (Fixes Diffview / non-file clangd panics)
+          if client and client.name == 'clangd' then
+            local uri = vim.uri_from_bufnr(bufnr)
+            if not string.match(uri, '^file://') then
+              vim.lsp.buf_detach_client(bufnr, client.id)
+              return
+            end
+          end
+
+          -- Fix overlaping
+          -- Add this near the top of your LSP config callback function
+          pcall(vim.keymap.del, 'n', 'grr', { buffer = bufnr })
+          pcall(vim.keymap.del, 'n', 'grn', { buffer = bufnr })
+          pcall(vim.keymap.del, 'n', 'gra', { buffer = bufnr })
+          pcall(vim.keymap.del, 'n', 'gri', { buffer = bufnr })
+          pcall(vim.keymap.del, 'n', 'grx', { buffer = bufnr })
+          pcall(vim.keymap.del, 'n', 'grt', { buffer = bufnr })
           -- Helper to easily define mappings local to the current LSP buffer
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
@@ -187,6 +204,15 @@ return {
       require('mason-lspconfig').setup {
         ensure_installed = { 'clangd', 'pyright', 'lua_ls', 'bashls', 'qmlls' },
       }
+
+      -- Auto-enable the servers natively
+      -- vim.lsp.enable({ 'clangd', 'pyright', 'lua_ls', 'bashls', 'qmlls' })
+
+      -- HERE: Define the missing commands manually
+      vim.api.nvim_create_user_command('LspInfo', 'checkhealth vim.lsp', {})
+      vim.api.nvim_create_user_command('LspLog', function()
+        vim.cmd('edit ' .. vim.lsp.log.get_filename())
+      end, {})
     end,
   },
 }
