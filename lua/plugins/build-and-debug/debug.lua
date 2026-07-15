@@ -14,7 +14,22 @@ return {
         return
       end
 
-      require('mason-nvim-dap').setup { automatic_installation = true }
+      require('mason-nvim-dap').setup {
+        automatic_installation = true,
+        -- Ensure 'cpptools' is installed alongside 'codelldb' for standard GDB remote debugging
+        ensure_installed = { 'codelldb', 'cpptools' },
+        handlers = {
+          function(config)
+            require('mason-nvim-dap').default_handler(config)
+          end,
+          codelldb = function(config)
+            require('mason-nvim-dap').default_handler(config)
+          end,
+          cpptools = function(config)
+            require('mason-nvim-dap').default_handler(config)
+          end,
+        },
+      }
       dapui.setup()
 
       dap.listeners.after.event_initialized['dapui_config'] = function()
@@ -27,10 +42,11 @@ return {
         dapui.close()
       end
 
-      -- Example C++ config with Overseer integration
+      -- C++ configurations (supports both local builds & VM-based debugging)
       dap.configurations.cpp = {
+        -- 💻 1. Local Debugging (runs QBS build locally first via Overseer)
         {
-          name = 'Debug with build',
+          name = 'Local: Debug with build',
           type = 'codelldb',
           request = 'launch',
           program = function()
@@ -38,7 +54,30 @@ return {
           end,
           cwd = '${workspaceFolder}',
           stopOnEntry = false,
-          preLaunchTask = 'build', -- 🧠 triggers Overseer before debugging
+          preLaunchTask = 'build', -- 🧠 Triggers your Overseer local build target before launching
+        },
+
+        -- 🌐 2. Remote Debugging (Attaches directly to gdbserver running on your QEMU VM)
+        {
+          name = 'Remote GDB: Attach to VM',
+          type = 'cppdbg',
+          request = 'launch', -- 'launch' is required by cppdbg to initialize remote target commands
+          MIMode = 'gdb',
+          miDebuggerServerAddress = function()
+            return vim.fn.input('VM IP & Port: ', '192.168.122.1:1234')
+          end,
+          cwd = '${workspaceFolder}',
+          program = function()
+            -- Map the local debug symbols binary to the remote VM instructions
+            return vim.fn.input('Local path to executable (for symbols): ', vim.fn.getcwd() .. '/build/', 'file')
+          end,
+          setupCommands = {
+            {
+              text = '-enable-pretty-printing',
+              description = 'Enable GDB pretty printing',
+              ignoreFailures = false,
+            },
+          },
         },
       }
 
@@ -54,37 +93,6 @@ return {
       map('<leader>du', dap.step_out, 'Step Out')
       map('<leader>dr', dap.restart, 'Restart Session')
       map('<leader>dq', dap.terminate, 'Quit Debugger')
-    end,
-  },
-
-  ---------------------------------------------------------------------------
-  -- 💻 Inline Code Execution: code_runner.nvim
-  ---------------------------------------------------------------------------
-  {
-    'CRAG666/code_runner.nvim',
-    config = function()
-      local ok, runner = pcall(require, 'code_runner')
-      if not ok then
-        return
-      end
-
-      runner.setup {
-        mode = 'term',
-        focus = true,
-        startinsert = false,
-        filetype = {
-          python = 'python3 -u',
-          cpp = 'g++ $fileName -o $fileNameWithoutExt && ./$fileNameWithoutExt',
-          c = 'gcc $fileName -o $fileNameWithoutExt && ./$fileNameWithoutExt',
-          go = 'go run .',
-          rust = 'cargo run',
-          sh = 'bash',
-          lua = 'lua',
-        },
-      }
-
-      vim.keymap.set('n', '<leader>rr', '<cmd>RunCode<CR>', { desc = 'Run current file' })
-      vim.keymap.set('v', '<leader>rr', '<cmd>RunCode<CR>', { desc = 'Run selected code' })
     end,
   },
 }

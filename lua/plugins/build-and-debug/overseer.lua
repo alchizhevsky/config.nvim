@@ -9,11 +9,10 @@ return {
 
       -- Global Overseer setup
       overseer.setup {
-        dap = true, -- enables DAP integration
+        dap = true, -- Enables DAP integration (essential for preLaunchTask mapping)
         templates = { 'builtin' },
         strategy_defaults = {
           terminal = {
-            -- floating window for all task outputs
             border = 'rounded',
             width = 80,
             height = 20,
@@ -24,8 +23,7 @@ return {
           },
         },
         task_list = {
-          open = 'quickfix', -- keep task list stable in Quickfix
-          -- you can still adjust float options here if needed
+          open = 'quickfix', -- Keeps task status lists bound to Quickfix
           float = {
             border = 'rounded',
             width = 80,
@@ -38,18 +36,20 @@ return {
         },
       }
 
-      -- CPU detection
+      -- Dynamic Host CPU Detection
+
       local function get_nproc()
-        ---@diagnostic disable-next-line: redefined-local
-        local ok, cores = pcall(function()
-          ---@diagnostic disable-next-line: undefined-field
+        local core_ok, cores = pcall(function()
           return vim.loop.cpu_info() and #vim.loop.cpu_info() or 1
         end)
-        return ok and cores or 1
+        return core_ok and cores or 1
       end
 
       -- Detect build system
       local function detect_build_system()
+        if #vim.fn.glob '*.qbs' > 0 then
+          return 'qbs'
+        end
         if vim.fn.filereadable 'Makefile' == 1 then
           return 'make'
         end
@@ -67,6 +67,9 @@ return {
 
       local function detect_build_command()
         local sys = detect_build_system()
+        if sys == 'qbs' then
+          return { 'qbs', 'build', 'config:debug' }
+        end
         if sys == 'make' then
           return { 'make', '-j' .. get_nproc() }
         end
@@ -84,10 +87,13 @@ return {
 
       local function detect_run_command()
         local sys = detect_build_system()
+        if sys == 'qbs' then
+          return { 'qbs', 'run' }
+        end
         if sys == 'make' then
           return vim.fn.filereadable './main' == 1 and { './main' } or { 'make', 'run' }
         elseif sys == 'cmake' then
-          return { './build/main' } -- adjust binary as needed
+          return { './build/main' }
         elseif sys == 'cargo' then
           return { 'cargo', 'run' }
         elseif sys == 'go' then
