@@ -1,6 +1,20 @@
 return {
   {
     'stevearc/overseer.nvim',
+
+    -- Keymaps
+    keys = {
+      { '<leader>ob', '<cmd>OverseerRun build<CR>', desc = 'Overseer: Build Project' },
+      {
+        '<leader>or',
+        function()
+          require('overseer').run_task { name = 'run' }
+        end,
+        desc = 'Overseer: Run Project',
+      },
+      { '<leader>ot', '<cmd>OverseerToggle<CR>', desc = 'Overseer: Toggle Task Panel' },
+    },
+
     config = function()
       local ok, overseer = pcall(require, 'overseer')
       if not ok then
@@ -122,13 +136,6 @@ return {
       local function run_project()
         overseer.run_template { name = 'run' }
       end
-
-      -- Keymaps
-      vim.keymap.set('n', '<leader>ob', '<cmd>OverseerRun build<CR>', { desc = 'Build project' })
-      vim.keymap.set('n', '<leader>or', run_project, { desc = 'Run project' })
-      vim.keymap.set('n', '<leader>ot', function()
-        overseer.toggle()
-      end, { desc = 'Toggle task list' })
 
       -- Notifications
       vim.api.nvim_create_autocmd('User', {
