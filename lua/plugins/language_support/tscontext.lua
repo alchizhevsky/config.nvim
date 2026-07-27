@@ -1,7 +1,10 @@
 return {
   'nvim-treesitter/nvim-treesitter-context',
   lazy = true, -- lazy load on event
-  event = 'BufReadPre',
+  event = { 'BufReadPost', 'BufNewFile' },
+  dependencies = {
+    'nvim-treesitter/nvim-treesitter',
+  },
   config = function()
     require('treesitter-context').setup {
       enable = true, -- Enable this plugin (Can be enabled/disabled later via commands)
