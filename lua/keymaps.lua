@@ -5,24 +5,6 @@
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
--- Open the current quickfix list inside Telescope
-vim.keymap.set('n', '<leader>q', function()
-  require('telescope.builtin').diagnostics {
-    -- 1. Only show the filename (not the massive absolute directory path)
-    path_display = { 'tail' },
-
-    -- 2. Force the preview window to the bottom or top to give the text maximum width
-    layout_strategy = 'vertical',
-    layout_config = {
-      vertical = {
-        width = 0.9,
-        height = 0.9,
-        preview_height = 0.4,
-      },
-    },
-  }
-end, { desc = 'LSP: [Q]uickfix Diagnostics' })
-
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.

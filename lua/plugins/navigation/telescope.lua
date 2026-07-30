@@ -107,6 +107,27 @@ return {
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+
+      -- Open the current quickfix list inside Telescope
+      vim.keymap.set('n', '<leader>q', function()
+        require('telescope.builtin').diagnostics {
+          -- Limit results to current buffer only
+          bufnr = 0,
+
+          -- 1. Only show the filename (not the massive absolute directory path)
+          path_display = { 'tail' },
+
+          -- 2. Force the preview window to the bottom or top to give the text maximum width
+          layout_strategy = 'vertical',
+          layout_config = {
+            vertical = {
+              width = 0.9,
+              height = 0.9,
+              preview_height = 0.4,
+            },
+          },
+        }
+      end, { desc = 'LSP: [Q]uickfix Current Buffer Diagnostics' })
     end,
   },
 }
