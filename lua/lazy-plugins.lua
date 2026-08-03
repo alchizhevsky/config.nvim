@@ -5,7 +5,6 @@ require('lazy').setup({
   { import = 'plugins/build-and-debug' },
   { import = 'plugins/git' },
   { import = 'plugins/qol' },
-  { import = 'plugins/ai' },
   { import = 'plugins/fun' },
 }, {
   ui = {

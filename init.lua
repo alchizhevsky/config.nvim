@@ -18,8 +18,6 @@ require 'lazy-bootstrap'
 -- [[ Configure and install plugins ]]
 require 'lazy-plugins'
 
-vim.cmd 'Copilot disable'
-
 -- TODO: avoid this and make conform itself choose clang-format instead of clangd
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('force-disable-clangd-format', { clear = true }),
