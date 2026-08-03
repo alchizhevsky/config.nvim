@@ -25,13 +25,24 @@ return {
     },
 
     sources = {
-      -- Default sources are LSP, path, buffer, and snippets
-      default = { 'lsp', 'path', 'snippets', 'buffer' },
+      -- Default sources are LSP, path, buffer, snippets, and minuet (AI)
+      default = { 'lsp', 'path', 'snippets', 'buffer', 'minuet' },
+      providers = {
+        minuet = {
+          name = 'minuet',
+          module = 'minuet.blink',
+          async = true,
+          -- should match minuet's request_timeout (in ms)
+          timeout_ms = 3000,
+          score_offset = 50,
+        },
+      },
     },
 
     completion = {
       menu = { draw = { columns = { { 'kind_icon' }, { 'label', gap = 1 }, { 'kind' } } } },
       documentation = { auto_show = true, auto_show_delay_ms = 200 },
+      trigger = { prefetch_on_insert = false },
     },
   },
 }
