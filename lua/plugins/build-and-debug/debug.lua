@@ -1,4 +1,6 @@
 -- Debugging: nvim-dap + UI + Mason Integration
+local plugin_dir = vim.fn.fnamemodify(debug.getinfo(1, 'S').source:match '@?(.*[/\\])', ':h')
+
 return {
   {
     'mfussenegger/nvim-dap',
@@ -94,8 +96,7 @@ return {
       end
 
       -------------------------------------------------------------------------
-      -- 2. Define Adapters (Local codelldb is auto-defined by Mason)
-      --    Define Native GDB on Host for Remote Astra Debugging
+      -- 2. Define Adapters
       -------------------------------------------------------------------------
       dap.adapters.gdb = {
         type = 'executable',
@@ -103,72 +104,37 @@ return {
         args = {
           '--quiet',
           '--interpreter=dap',
-          '--nh', -- Do not read ~/.gdbinit (prevents noisy terminal prints from corrupting DAP JSON)
+          '--nh',
+        },
+      }
+
+      -- Remote SSH gdb: runs gdb on the remote host via SSH
+      -- GDB itself attaches to the remote process by PID, no gdbserver needed
+      dap.adapters.ssh_gdb = {
+        type = 'executable',
+        command = plugin_dir .. '/ssh-gdb-wrapper.sh',
+        args = {
+          '--nx', -- No .gdbinit files at all
+          '-nh', -- Do not read ~/.gdbinit
         },
       }
 
       -------------------------------------------------------------------------
-      -- 3. Native Background SSH Tunnel Management (Asynchronous & Non-blocking)
+      -- 3. Remote SSH gdb listener
       -------------------------------------------------------------------------
-      local tunnel_job_id = nil
-
-      local function cleanup_tunnel()
-        if tunnel_job_id then
-          vim.fn.jobstop(tunnel_job_id)
-          tunnel_job_id = nil
-          vim.notify('Astra SSH Tunnel closed.', vim.log.levels.INFO)
-        end
-      end
-
-      -- Attach listener: Spawns the tunnel *before* connecting
-      dap.listeners.before.attach.astra_tunnel = function(session, config)
-        -- Only trigger this for our Astra config!
-        if config.name ~= 'Astra: Attach to Running Fly-DM' then
+      dap.listeners.before.attach.ssh_gdb = function(session, config)
+        if config.adapter ~= 'ssh_gdb' then
           return
         end
 
-        cleanup_tunnel() -- Clean up any stale sessions
-
-        vim.notify('Launching Astra SSH Tunnel & remote gdbserver...', vim.log.levels.INFO)
-
-        tunnel_job_id = vim.fn.jobstart({
-          'ssh',
-          '-4',
-          '-t',
-          '-L',
-          '1234:127.0.0.1:1234',
-          'alex@localhost',
-          '-p',
-          '22220',
-          'sudo gdbserver localhost:1234 --attach $(pgrep fly-dm)',
-        }, {
-          on_stdout = function(_, data)
-            local output = table.concat(data, '\n')
-            if output:match '[pP]assword' then
-              vim.notify('Astra Tunnel: Password prompt detected! Set up NOPASSWD or SSH keys if it hangs.', vim.log.levels.WARN)
-            end
-          end,
-          on_stderr = function(_, data)
-            local err = table.concat(data, '\n')
-            if err ~= '' and not err:match 'Connection to .* closed' then
-              print('Tunnel Error: ' .. err)
-            end
-          end,
-        })
-
-        -- Give gdbserver/SSH tunnel a split-second to bind before nvim-dap tries to connect
-        vim.wait(300)
+        vim.notify('Attaching to remote PID ' .. config.pid .. '...', vim.log.levels.INFO)
       end
-
-      -- Auto-cleanup on any termination/disconnect state
-      dap.listeners.after.event_terminated.astra_tunnel = cleanup_tunnel
-      dap.listeners.after.disconnect.astra_tunnel = cleanup_tunnel
 
       -------------------------------------------------------------------------
       -- 4. Unified C/C++ configurations
       -------------------------------------------------------------------------
       local cpp_configs = {
-        -- 💻 Local Debugging (runs QBS build locally first via Overseer using CodeLLDB)
+        -- Local Debugging (runs QBS build locally first via Overseer using CodeLLDB)
         {
           name = 'Local: Debug with build',
           type = 'codelldb',
@@ -180,26 +146,16 @@ return {
           stopOnEntry = false,
           preLaunchTask = 'build',
         },
+        -- Debug a process on the remote SSH host
+        -- GDB runs on the remote, attaches by PID, loads symbols from remote binary
         {
-          name = 'Astra: Attach to Running Fly-DM',
-          type = 'gdb',
+          name = 'SSH: Attach to Remote PID',
+          type = 'ssh_gdb',
           request = 'launch',
-          program = vim.fn.expand '~/dev/unilogon/build/debug/install-root/flydm-plugin/libfly-dm_greet_rtlogon.so',
-          cwd = '${workspaceFolder}',
-
-          initCommands = {
-            -- Map the path
-            'set substitute-path /home/alex/dev/unilogon ' .. vim.fn.expand '~/dev/unilogon',
-          },
-
-          targetCommands = {
-            -- 1. Connect
-            'target remote localhost:1234',
-            -- 2. Force GDB to load symbols for the shared library
-            'sharedlibrary libfly-dm_greet_rtlogon.so',
-            -- 3. Force a re-read of the symbol table
-            'info sharedlibrary',
-          },
+          pid = function()
+            return tonumber(vim.fn.input('Remote PID to attach: ')) or 0
+          end,
+          cwd = '/',
         },
       }
 
