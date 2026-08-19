@@ -1,0 +1,4 @@
+- opencode.nvim:
+- - spawn a new terminal window / attach to an existing one, instead of using pseudo-terminal in split
+- - mb always launch that window ? ? ?
+- - disable the vim mode for the opencode terminal / find a native opt
