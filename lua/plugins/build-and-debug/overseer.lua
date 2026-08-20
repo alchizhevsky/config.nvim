@@ -4,15 +4,15 @@ return {
 
     -- Keymaps
     keys = {
-      { '<leader>ob', '<cmd>OverseerRun build<CR>', desc = 'Overseer: Build Project' },
+      { '<leader>ob', '<cmd>OverseerRun build<CR>', desc = 'Overseer Build Project' },
       {
         '<leader>or',
         function()
           require('overseer').run_task { name = 'run' }
         end,
-        desc = 'Overseer: Run Project',
+        desc = 'Overseer Run Project',
       },
-      { '<leader>ot', '<cmd>OverseerToggle<CR>', desc = 'Overseer: Toggle Task Panel' },
+      { '<leader>ot', '<cmd>OverseerToggle<CR>', desc = 'Overseer Toggle Task Panel' },
     },
 
     config = function()

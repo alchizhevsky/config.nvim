@@ -19,8 +19,6 @@ return {
       'williamboman/mason-lspconfig.nvim',
       'WhoIsSethDaniel/mason-tool-installer.nvim',
       { 'j-hui/fidget.nvim', opts = {} },
-      -- WARN: worked fine with cmp-nvim-lsp, trying blink
-      -- 'hrsh7th/cmp-nvim-lsp',
       'saghen/blink.cmp',
     },
     config = function()
@@ -51,22 +49,22 @@ return {
           -- Helper to easily define mappings local to the current LSP buffer
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
-            vim.keymap.set(mode, keys, func, { buffer = bufnr, desc = 'LSP: ' .. desc })
+            vim.keymap.set(mode, keys, func, { buffer = bufnr, desc = desc })
           end
 
           -- =================================================================
           -- 1. GLOBAL / UNIFIED SHORTCUTS (Works everywhere via abstraction)
           -- =================================================================
-          map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-          map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-          map('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-          map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          map('gd', require('telescope.builtin').lsp_definitions, 'Go to Definition')
+          map('gr', require('telescope.builtin').lsp_references, 'Go to References')
+          map('gI', require('telescope.builtin').lsp_implementations, 'Go to Implementation')
+          map('gD', vim.lsp.buf.declaration, 'Go to Declaration')
           map('K', vim.lsp.buf.hover, 'Hover Documentation')
-          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
-          map('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-          map('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-          map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction', { 'n', 'x' })
+          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type Definition')
+          map('<leader>ds', require('telescope.builtin').lsp_document_symbols, 'Document Symbols')
+          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'Workspace Symbols')
+          map('<leader>rn', vim.lsp.buf.rename, 'Rename')
+          map('<leader>ca', vim.lsp.buf.code_action, 'Code Action', { 'n', 'x' })
           map('<leader>cy', function()
             vim.diagnostic.open_float { border = 'rounded' }
           end, 'Show Line Diagnostics')
@@ -98,7 +96,7 @@ return {
           if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
             map('<leader>th', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = bufnr })
-            end, '[T]oggle Inlay [H]ints')
+            end, 'Toggle Inlay Hints')
           end
 
           -- =================================================================
