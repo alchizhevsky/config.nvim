@@ -23,6 +23,17 @@ return {
       icons = {
         -- set icon mappings to true if you have a Nerd Font
         mappings = vim.g.have_nerd_font,
+        rules = {
+          { pattern = 'harpoon', icon = '󱡅 ', color = 'cyan' },
+          { pattern = 'overseer', icon = '󰑮 ', color = 'orange' },
+          { pattern = 'dap', icon = ' ', color = 'red' },
+          { pattern = 'lsp', icon = ' ', color = 'orange' },
+          { pattern = 'build', icon = ' ', color = 'orange' },
+          { pattern = 'run', icon = ' ', color = 'green' },
+          { pattern = 'undo', icon = ' ', color = 'yellow' },
+          { pattern = '%f[%a]ai', icon = '󰚩 ', color = 'purple' },
+        },
+        group = '',
         -- If you are using a Nerd Font: set icons.keys to an empty table which will use the
         -- default which-key.nvim defined Nerd Font icons, otherwise define a string table
         keys = vim.g.have_nerd_font and {} or {
@@ -59,20 +70,22 @@ return {
 
       -- Document existing key chains
       spec = {
-        { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
-        { '<leader>d', group = '[D]ocument' },
-        { '<leader>r', group = '[R]ename' },
-        { '<leader>s', group = '[S]earch' },
-        { '<leader>w', group = '[W]orkspace' },
-        { '<leader>t', group = '[T]oggle' },
-        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
-        { '<leader>i', group = '[I] AI', icon = '󰚩', mode = { 'n', 'x' } },
-        { '<leader>ia', icon = '󰚩', mode = 'n' },
-        { '<leader>is', icon = '󰚩', mode = { 'n', 'x' } },
-        { '<leader>it', icon = '󰚩', mode = 'n' },
-        { '<leader>id', icon = '󰚩', mode = 'x' },
-        { '<leader>ie', icon = '󰚩', mode = 'x' },
-        { '<leader>ir', icon = '󰚩', mode = 'x' },
+        { '<leader>c', group = 'Code', icon = { icon = ' ', color = 'orange' }, mode = { 'n', 'x' } },
+        { '<leader>d', group = 'Debug / Document', icon = { icon = ' ', color = 'red' } },
+        { '<leader>e', icon = { icon = '󰙅 ', color = 'green' } },
+        { '<leader>r', group = 'Rename' },
+        { '<leader>rn', icon = { icon = '󰑕 ', color = 'cyan' } },
+        { '<leader>s', group = 'Search', icon = { icon = ' ', color = 'blue' } },
+        { '<leader>w', group = 'Workspace', icon = { icon = '󰖲 ', color = 'blue' } },
+        { '<leader>t', group = 'Toggle', icon = { icon = ' ', color = 'yellow' } },
+        { '<leader>h', group = 'Git Hunk', icon = { icon = '󰊢 ', color = 'orange' }, mode = { 'n', 'v' } },
+        { '<leader>i', group = 'AI', icon = { icon = '󰚩 ', color = 'purple' }, mode = { 'n', 'x' } },
+        { '<leader>o', group = 'Run / Tasks', icon = { icon = ' ', color = 'red' }, mode = { 'n', 'x' } },
+        { '<leader>1', desc = 'Harpoon 1–5', icon = { icon = '󱡅 ', color = 'cyan' } },
+        { '<leader>2', hidden = true },
+        { '<leader>3', hidden = true },
+        { '<leader>4', hidden = true },
+        { '<leader>5', hidden = true },
       },
     },
   },

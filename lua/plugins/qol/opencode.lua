@@ -110,19 +110,19 @@ return {
 
     vim.schedule(start_hidden)
 
-    vim.keymap.set('n', '<leader>ia', ask, { desc = '[I] AI ask OpenCode' })
-    vim.keymap.set({ 'n', 'x' }, '<leader>is', select_action, { desc = '[I] AI select OpenCode action' })
+    vim.keymap.set('n', '<leader>ia', ask, { desc = 'AI Ask OpenCode' })
+    vim.keymap.set({ 'n', 'x' }, '<leader>is', select_action, { desc = 'AI Select OpenCode Action' })
     vim.keymap.set('n', '<leader>it', function()
       require('snacks.terminal').toggle(opencode_cmd, terminal_opts)
-    end, { desc = '[I] AI toggle OpenCode' })
+    end, { desc = 'AI Toggle OpenCode' })
     vim.keymap.set('x', '<leader>id', function()
       prompt 'Add useful documentation comments to @this. Edit the file directly.'
-    end, { desc = '[I] AI document selection' })
+    end, { desc = 'AI Document Selection' })
     vim.keymap.set('x', '<leader>ie', function()
       prompt 'Explain @this and its surrounding context. Do not edit the file.'
-    end, { desc = '[I] AI explain selection' })
+    end, { desc = 'AI Explain Selection' })
     vim.keymap.set('x', '<leader>ir', function()
       prompt 'Refactor @this for correctness, readability, and maintainability. Edit the file directly.'
-    end, { desc = '[I] AI refactor selection' })
+    end, { desc = 'AI Refactor Selection' })
   end,
 }
