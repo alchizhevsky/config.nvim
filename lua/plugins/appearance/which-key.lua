@@ -133,10 +133,6 @@ return {
           { '[', mode = { 'n', 'x' } },
           { ']', mode = { 'n', 'x' } },
           { '<c-w>', mode = { 'n', 'x' } },
-          { 'c', mode = 'n' },
-          { 'd', mode = 'n' },
-          { 'y', mode = 'n' },
-          { 'v', mode = 'n' },
         },
         defer = function(ctx)
           return ctx.mode == 'V' or ctx.mode == '<C-V>'
