@@ -41,6 +41,12 @@ return {
           },
         },
       },
+      custom_highlights = function(colors)
+        return {
+          WhichKeyGroup = { fg = colors.text },
+          WhichKeyDesc = { fg = colors.text },
+        }
+      end,
     }
 
     vim.cmd.colorscheme 'catppuccin'

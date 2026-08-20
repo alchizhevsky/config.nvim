@@ -51,7 +51,7 @@ return {
           -- Helper to easily define mappings local to the current LSP buffer
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
-            vim.keymap.set(mode, keys, func, { buffer = bufnr, desc = 'LSP ' .. desc })
+            vim.keymap.set(mode, keys, func, { buffer = bufnr, desc = desc })
           end
 
           -- =================================================================
