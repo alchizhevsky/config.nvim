@@ -13,7 +13,6 @@ return {
   {
     -- Main LSP Configuration
     'neovim/nvim-lspconfig',
-    -- event = { 'BufReadPre', 'BufNewFile' },
     dependencies = {
       { 'williamboman/mason.nvim', opts = {} },
       'williamboman/mason-lspconfig.nvim',
@@ -38,36 +37,35 @@ return {
             end
           end
 
-          -- Fix overlaping
-          -- Add this near the top of your LSP config callback function
-          pcall(vim.keymap.del, 'n', 'grr', { buffer = bufnr })
-          pcall(vim.keymap.del, 'n', 'grn', { buffer = bufnr })
-          pcall(vim.keymap.del, 'n', 'gra', { buffer = bufnr })
-          pcall(vim.keymap.del, 'n', 'gri', { buffer = bufnr })
-          pcall(vim.keymap.del, 'n', 'grx', { buffer = bufnr })
-          pcall(vim.keymap.del, 'n', 'grt', { buffer = bufnr })
-          -- Helper to easily define mappings local to the current LSP buffer
+          -- Completely disable Neovim 0.11+ default LSP mappings
+          pcall(vim.keymap.del, 'n', 'grn')
+          pcall(vim.keymap.del, 'n', 'gra')
+          pcall(vim.keymap.del, 'n', 'grr')
+          pcall(vim.keymap.del, 'n', 'gri')
+          pcall(vim.keymap.del, 'n', 'gO')
+          pcall(vim.keymap.del, 'n', 'grt')
+          pcall(vim.keymap.del, 'n', 'grx')
+
           local map = function(keys, func, desc, mode)
             mode = mode or 'n'
             vim.keymap.set(mode, keys, func, { buffer = bufnr, desc = desc })
           end
 
-          -- =================================================================
-          -- 1. GLOBAL / UNIFIED SHORTCUTS (Works everywhere via abstraction)
-          -- =================================================================
+          -- 1. GLOBAL / UNIFIED SHORTCUTS
           map('gd', require('telescope.builtin').lsp_definitions, 'Go to Definition')
           map('gr', require('telescope.builtin').lsp_references, 'Go to References')
           map('gI', require('telescope.builtin').lsp_implementations, 'Go to Implementation')
           map('gD', vim.lsp.buf.declaration, 'Go to Declaration')
+          map('gt', require('telescope.builtin').lsp_type_definitions, 'Go to Type Definition')
           map('K', vim.lsp.buf.hover, 'Hover Documentation')
-          map('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type Definition')
           map('<leader>ds', require('telescope.builtin').lsp_document_symbols, 'Document Symbols')
-          map('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'Workspace Symbols')
+          map('<leader>cs', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'Workspace Symbols')
           map('<leader>rn', vim.lsp.buf.rename, 'Rename')
           map('<leader>ca', vim.lsp.buf.code_action, 'Code Action', { 'n', 'x' })
           map('<leader>cy', function()
             vim.diagnostic.open_float { border = 'rounded' }
           end, 'Show Line Diagnostics')
+
           -- Document Highlighting
           if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
@@ -99,13 +97,11 @@ return {
             end, 'Toggle Inlay Hints')
           end
 
-          -- =================================================================
-          -- 2. SERVER-SPECIFIC EXTENSIONS (Safely sandboxed)
-          -- =================================================================
+          -- 2. SERVER-SPECIFIC EXTENSIONS
           if client and client.name == 'clangd' then
-            -- Uses client:request directly to isolate execution to clangd only
             map('<leader>ch', function()
-              client:request('textDocument/switchSourceHeader', { uri = vim.uri_from_bufnr(bufnr) }, function(err, result)
+              ---@diagnostic disable-next-line: param-type-mismatch
+              client:request('textDocument/switchSourceHeader' --[[@as any]], { uri = vim.uri_from_bufnr(bufnr) }, function(err, result)
                 if err then
                   vim.notify('LSP Error switching files: ' .. tostring(err.message or err), vim.log.levels.ERROR)
                   return
@@ -139,8 +135,9 @@ return {
       if capabilities.general then
         capabilities.general.positionEncodings = { 'utf-16' }
       end
+      capabilities['offsetEncoding'] = { 'utf-16' }
 
-      -- Native Neovim 0.11+ Server Configurations
+      -- Native Neovim Server Configurations
       vim.lsp.config('clangd', {
         capabilities = vim.tbl_deep_extend('force', capabilities, {
           positionEncodings = { 'utf-16' },
@@ -149,7 +146,6 @@ return {
           'clangd',
           '--background-index',
           '--clang-tidy',
-          -- '--header-insertion=iwyu',
           '--header-insertion=never',
           '--enable-config',
           '--completion-style=detailed',
@@ -165,6 +161,9 @@ return {
           Lua = {
             codeLens = { enable = true },
             hint = { enable = true, semicolon = 'Disable' },
+            diagnostics = {
+              globals = { 'vim', 'hl' },
+            },
           },
         },
       })
@@ -184,16 +183,15 @@ return {
 
       vim.lsp.config('qmlls', { capabilities = capabilities })
 
-      -- Force LSP to use a specific offset encoding for all clients
+      -- Force LSP offsetEncoding override safely without field injection warnings
       local _publish_diagnostics = vim.lsp.diagnostic.on_publish_diagnostics
+      ---@diagnostic disable-next-line: duplicate-set-field
       vim.lsp.diagnostic.on_publish_diagnostics = function(err, result, ctx, config)
-        result.offsetEncoding = 'utf-16' -- or 'utf-8' based on what clangd prefers
+        if result then
+          result['offsetEncoding'] = 'utf-16'
+        end
         _publish_diagnostics(err, result, ctx, config)
       end
-
-      -- Explicitly set offsetEncoding for your LSP clients
-      local capabilities = vim.lsp.protocol.make_client_capabilities()
-      capabilities.offsetEncoding = { 'utf-16' }
 
       -- Setup Mason tools
       local ensure_installed = {}
@@ -205,14 +203,18 @@ return {
         ensure_installed = { 'clangd', 'pyright', 'lua_ls', 'bashls', 'qmlls' },
       }
 
-      -- Auto-enable the servers natively
-      -- vim.lsp.enable({ 'clangd', 'pyright', 'lua_ls', 'bashls', 'qmlls' })
-
-      -- HERE: Define the missing commands manually
+      -- Custom Commands
       vim.api.nvim_create_user_command('LspInfo', 'checkhealth vim.lsp', {})
       vim.api.nvim_create_user_command('LspLog', function()
         vim.cmd('edit ' .. vim.lsp.log.get_filename())
       end, {})
+      vim.api.nvim_create_user_command('LspRestart', function()
+        local clients = vim.lsp.get_clients()
+        for _, client in ipairs(clients) do
+          client:stop()
+        end
+        vim.notify('LSP clients stopped. Re-open buffer or edit file to restart.', vim.log.levels.INFO)
+      end, { desc = 'Restart all active LSP clients' })
     end,
   },
 }

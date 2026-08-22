@@ -207,7 +207,6 @@ return {
           { '<leader>q', icon = { icon = '󰒡 ', color = 'red' } },
           { '<leader>/', icon = { icon = '󰈭 ', color = 'green' } },
           { '<leader><leader>', icon = { icon = '󰈔 ', color = 'cyan' } },
-          { '<leader>w', group = 'Workspace', icon = { icon = '󰖲 ', color = 'blue' } },
           { '<leader>t', group = 'Toggle', icon = { icon = ' ', color = 'yellow' } },
           { '<leader>h', group = 'Git Hunk', icon = { icon = '󰊢 ', color = 'orange' }, mode = { 'n', 'v' } },
           { '<leader>i', group = 'AI', icon = { icon = '󰚩 ', color = 'purple' }, mode = { 'n', 'x' } },

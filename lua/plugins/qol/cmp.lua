@@ -1,14 +1,15 @@
 return {
+  -- TODO: fix scrollbar
   'saghen/blink.cmp',
-  -- Use a release tag to download prebuilt binaries
   version = '*',
-  -- Or build from source
-  -- build = 'cargo build --release',
+
+  -- Fix Neovim's native grey scrollbar block for float popups
+  init = function()
+    vim.api.nvim_set_hl(0, 'PmenuThumb', { link = 'FloatBorder' })
+    vim.api.nvim_set_hl(0, 'PmenuSbar', { bg = 'NONE' })
+  end,
 
   opts = {
-    -- 'default' for mappings similar to vscode
-    -- 'super-tab' for tab-completion
-    -- 'enter' for enter-completion
     keymap = {
       preset = 'enter',
       ['<C-n>'] = { 'select_next', 'fallback' },
@@ -19,20 +20,17 @@ return {
     },
 
     appearance = {
-      -- Set to 'mono' for 'Nerd Font' symbols
       use_nvim_cmp_as_default = true,
       nerd_font_variant = 'mono',
     },
 
     sources = {
-      -- Default sources are LSP, path, buffer, snippets, and minuet (AI)
       default = { 'lsp', 'path', 'snippets', 'buffer', 'minuet' },
       providers = {
         minuet = {
           name = 'minuet',
           module = 'minuet.blink',
           async = true,
-          -- should match minuet's request_timeout (in ms)
           timeout_ms = 3000,
           score_offset = 50,
         },
@@ -40,9 +38,32 @@ return {
     },
 
     completion = {
-      menu = { draw = { columns = { { 'kind_icon' }, { 'label', gap = 1 }, { 'kind' } } } },
-      documentation = { auto_show = true, auto_show_delay_ms = 200 },
+      menu = {
+        border = 'rounded',
+        scrollbar = false,
+        draw = {
+          padding = 1,
+          columns = { { 'kind_icon' }, { 'label', gap = 1 }, { 'kind' } },
+        },
+      },
+
+      documentation = {
+        auto_show = true,
+        auto_show_delay_ms = 200,
+        window = {
+          border = 'rounded',
+          scrollbar = false,
+        },
+      },
+
       trigger = { prefetch_on_insert = false },
+    },
+
+    signature = {
+      enabled = true,
+      window = {
+        border = 'rounded',
+      },
     },
   },
 }
